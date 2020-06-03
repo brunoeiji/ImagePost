@@ -2,6 +2,7 @@ package com.example.camerapostimage
 
 import android.Manifest
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
@@ -11,9 +12,12 @@ import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
 import android.util.Log
+import android.widget.Toast
 import java.util.Base64
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import com.github.kittinunf.fuel.Fuel
+import com.github.kittinunf.fuel.core.extensions.jsonBody
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -25,7 +29,7 @@ class MainActivity : AppCompatActivity() {
     private val CAMERA_REQUEST = 0x42
     private val GALLERY_REQUEST = 0x41
     private val PERMISSION_CODE = 0x40
-    private val POST_URL = "http://192.168.0." //COMPLETAR AQUI
+    private val POST_URL = "http://172.18.0.1:8080/detect" //COMPLETAR AQUI
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -79,12 +83,13 @@ class MainActivity : AppCompatActivity() {
             GlobalScope.launch {
                 val body = "{ \"image\":\"" + base64Image + "\"}"
                 Log.d("BASE 64 IMAGE", body)
-//                Fuel.post(POST_URL)
-//                    .jsonBody(body)
-//                    .also { println(it) }
-//                    .response { result ->
-//                        print(result)
-//                    }
+                Fuel.post(POST_URL)
+                    .jsonBody(body)
+                    .response { result ->
+                        Log.e("result", "response chegou")
+                        val toast = Toast.makeText(applicationContext, "Resposta", Toast.LENGTH_LONG)
+                        toast.show()
+                    }
             }
         })
     }
@@ -143,7 +148,7 @@ class MainActivity : AppCompatActivity() {
             uploadImageToKasco(selectedImage)
             imageView.setImageBitmap(selectedImage)
         }else{
-            val alertDialog: AlertDialog? = this?.let {
+            val alertDialog: AlertDialog? = this.let {
                 val builder = AlertDialog.Builder(it)
                 builder.setTitle("Error")
                 builder.setMessage("Bitmap null, não foi possível fazer o upload")
